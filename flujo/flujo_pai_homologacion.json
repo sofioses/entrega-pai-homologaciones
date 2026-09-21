@@ -1,0 +1,509 @@
+{
+  "name": "PAI - Triage Homologaciones IA",
+  "meta": {
+    "instanceId": "pai-homologacion-final"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## ⚙️ SETUP (bindear antes de activar)\n\n1. **Credenciales**\n   - Airtable → Personal Access Token\n   - Slack → Bot Token (scopes: chat:write)\n   - Claude → *Header Auth* con Name = `x-api-key`, Value = tu API key de Anthropic\n\n2. **En cada nodo Airtable**: seleccioná tu Base y la tabla `Solicitudes`. n8n valida los nombres de columnas al elegir la tabla; ajustá si difieren.\n\n3. **En cada nodo Slack**: elegí tu canal (ej. `#pai-homologaciones`).\n\n4. **Nodo Claude**: confirmá el `model` y el `max_tokens`.\n\n➡️ No hay datos hardcodeados: todo sale de variables del sistema.",
+        "height": 420,
+        "width": 380,
+        "color": 4
+      },
+      "id": "sticky-setup",
+      "name": "Sticky - Setup",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-460, 40]
+    },
+    {
+      "parameters": {
+        "content": "### 🔴 Ruta de error: datos faltantes\nSi la solicitud llega incompleta, se registra el error y se avisa. El flujo NO avanza a la IA.",
+        "height": 260,
+        "width": 320,
+        "color": 3
+      },
+      "id": "sticky-err-datos",
+      "name": "Sticky - Error Datos",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [40, 480]
+    },
+    {
+      "parameters": {
+        "content": "### 🔴 Ruta de error: falla de API IA\nSi Claude no responde o falla, se guarda el log de error (Estado = `Error - API`) y se alerta por Slack.",
+        "height": 260,
+        "width": 320,
+        "color": 3
+      },
+      "id": "sticky-err-api",
+      "name": "Sticky - Error API",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [720, 480]
+    },
+    {
+      "parameters": {
+        "content": "### 🟡 Human-in-the-loop\nEl nodo Slack en modo **Send and Wait for Response** frena el flujo hasta que un analista haga clic en el botón nativo *Aprobar* o *Rechazar* en Slack. Se usan botones (no links de texto) para que Slack no auto-dispare la decisión. Evita el 'efecto metralleta'.",
+        "height": 240,
+        "width": 340,
+        "color": 5
+      },
+      "id": "sticky-hitl",
+      "name": "Sticky - HITL",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1360, 40]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "solicitud-homologacion",
+        "options": {}
+      },
+      "id": "node-webhook",
+      "name": "Trigger - Recepción Solicitud",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-460, 300],
+      "webhookId": "pai-solicitud-homologacion"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.body.nombre_sistema }}",
+              "rightValue": "",
+              "operator": { "type": "string", "operation": "notEmpty", "singleValue": true }
+            },
+            {
+              "id": "c2",
+              "leftValue": "={{ $json.body.solicitante }}",
+              "rightValue": "",
+              "operator": { "type": "string", "operation": "notEmpty", "singleValue": true }
+            },
+            {
+              "id": "c3",
+              "leftValue": "={{ $json.body.tipo_plataforma }}",
+              "rightValue": "",
+              "operator": { "type": "string", "operation": "notEmpty", "singleValue": true }
+            },
+            {
+              "id": "c4",
+              "leftValue": "={{ $json.body.datos_maneja }}",
+              "rightValue": "",
+              "operator": { "type": "string", "operation": "notEmpty", "singleValue": true }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "node-if-validacion",
+      "name": "Validación - Datos Completos",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [-200, 300]
+    },
+    {
+      "parameters": {
+        "resource": "record",
+        "operation": "create",
+        "base": { "__rl": true, "value": "", "mode": "list", "cachedResultName": "" },
+        "table": { "__rl": true, "value": "", "mode": "list", "cachedResultName": "Solicitudes" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Nombre del Sistema": "={{ $('Trigger - Recepción Solicitud').item.json.body.nombre_sistema }}",
+            "Solicitante": "={{ $('Trigger - Recepción Solicitud').item.json.body.solicitante }}",
+            "Área Solicitante": "={{ $('Trigger - Recepción Solicitud').item.json.body.area }}",
+            "Tipo de Plataforma": "={{ $('Trigger - Recepción Solicitud').item.json.body.tipo_plataforma }}",
+            "Datos que Maneja": "={{ $('Trigger - Recepción Solicitud').item.json.body.datos_maneja }}",
+            "Criticidad Declarada": "={{ $('Trigger - Recepción Solicitud').item.json.body.criticidad }}",
+            "Estado": "Pendiente"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "node-airtable-crear",
+      "name": "Airtable - Crear Registro",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [80, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const b = $json.body || {};\nconst system = [\n  'Sos un analista senior de seguridad de la informacion del equipo PAI (Proteccion de Activos Informaticos) de Banco Comafi, entidad regulada por el BCRA.',\n  'Evalua el riesgo de una solicitud de homologacion de un sistema/activo IT.',\n  'Analiza Confidencialidad, Integridad y Disponibilidad (CIA) y asigna un puntaje de 1 (bajo) a 5 (critico) a cada una.',\n  'Determina un nivel de riesgo global (Critico, Alto, Medio o Bajo) y lista los controles de seguridad requeridos.',\n  'Responde EXCLUSIVAMENTE con un objeto JSON valido, sin texto adicional ni markdown, con esta forma exacta:',\n  '{\"confidencialidad\": n, \"integridad\": n, \"disponibilidad\": n, \"nivel_riesgo\": \"Critico|Alto|Medio|Bajo\", \"controles\": [\"...\"], \"resumen\": \"...\"}'\n].join(' ');\nconst userPrompt = 'Solicitud de homologacion a evaluar:\\n' + JSON.stringify(b, null, 2);\nreturn [{ json: { systemPrompt: system, userPrompt } }];"
+      },
+      "id": "node-prep-prompt",
+      "name": "Preparar Prompt IA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [320, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { model: 'claude-haiku-4-5-20251001', max_tokens: 700, system: $json.systemPrompt, messages: [ { role: 'user', content: $json.userPrompt } ] } }}",
+        "options": {}
+      },
+      "id": "node-claude",
+      "name": "Claude - Evaluación de Riesgo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [560, 200],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = ($json.content && $json.content[0] && $json.content[0].text) ? $json.content[0].text : '';\nconst clean = raw.replace(/```json/g, '').replace(/```/g, '').trim();\nlet data;\ntry { data = JSON.parse(clean); } catch (e) { throw new Error('La IA no devolvio JSON valido: ' + e.message + ' | Respuesta: ' + raw); }\nconst controles = Array.isArray(data.controles) ? data.controles.join('; ') : String(data.controles || '');\nconst resumen_full = (data.resumen || '') + '\\n\\nControles requeridos: ' + controles;\nreturn [{ json: { confidencialidad: data.confidencialidad, integridad: data.integridad, disponibilidad: data.disponibilidad, nivel_riesgo: data.nivel_riesgo, controles, resumen: data.resumen, resumen_full } }];"
+      },
+      "id": "node-parse",
+      "name": "Parse - Evaluación IA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [820, 200]
+    },
+    {
+      "parameters": {
+        "resource": "record",
+        "operation": "update",
+        "base": { "__rl": true, "value": "", "mode": "list", "cachedResultName": "" },
+        "table": { "__rl": true, "value": "", "mode": "list", "cachedResultName": "Solicitudes" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Airtable - Crear Registro').item.json.id }}",
+            "Estado": "Esperando Aprobación",
+            "Clasif. IA - Confidencialidad": "={{ $json.confidencialidad }}",
+            "Clasif. IA - Integridad": "={{ $json.integridad }}",
+            "Clasif. IA - Disponibilidad": "={{ $json.disponibilidad }}",
+            "Nivel de Riesgo IA": "={{ $json.nivel_riesgo }}",
+            "Resumen IA": "={{ $json.resumen_full }}",
+            "Modelo IA / Tokens": "claude-haiku-4-5-20251001"
+          },
+          "matchingColumns": ["id"],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "node-airtable-guardar",
+      "name": "Airtable - Guardar Evaluación IA",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [1080, 200]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendAndWait",
+        "select": "channel",
+        "channelId": { "__rl": true, "value": "", "mode": "list", "cachedResultName": "" },
+        "message": "=:mag: *Nueva evaluación de homologación lista para revisión*\n*Sistema:* {{ $('Trigger - Recepción Solicitud').item.json.body.nombre_sistema }}\n*Solicitante:* {{ $('Trigger - Recepción Solicitud').item.json.body.solicitante }}\n*Tipo:* {{ $('Trigger - Recepción Solicitud').item.json.body.tipo_plataforma }}\n*Nivel de Riesgo (IA):* {{ $('Parse - Evaluación IA').item.json.nivel_riesgo }}\n*CIA:* C{{ $('Parse - Evaluación IA').item.json.confidencialidad }} / I{{ $('Parse - Evaluación IA').item.json.integridad }} / D{{ $('Parse - Evaluación IA').item.json.disponibilidad }}\n*Resumen:* {{ $('Parse - Evaluación IA').item.json.resumen }}",
+        "responseType": "approval",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "buttonApprovalLabel": "Aprobar",
+            "buttonDisapprovalLabel": "Rechazar"
+          }
+        },
+        "options": {}
+      },
+      "id": "node-slack-aprobacion",
+      "name": "Slack - Solicitar Aprobación (HITL)",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [1400, 200],
+      "webhookId": "pai-aprobacion-hitl"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": { "caseSensitive": false, "typeValidation": "loose" },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.data.approved }}",
+                    "rightValue": true,
+                    "operator": { "type": "boolean", "operation": "true", "singleValue": true }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "outputKey": "Aprobado"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": false, "typeValidation": "loose" },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.data.approved }}",
+                    "rightValue": false,
+                    "operator": { "type": "boolean", "operation": "false", "singleValue": true }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "outputKey": "Rechazado"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-switch",
+      "name": "Switch - Decisión Humana",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [1720, 200]
+    },
+    {
+      "parameters": {
+        "resource": "record",
+        "operation": "update",
+        "base": { "__rl": true, "value": "", "mode": "list", "cachedResultName": "" },
+        "table": { "__rl": true, "value": "", "mode": "list", "cachedResultName": "Solicitudes" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Airtable - Crear Registro').item.json.id }}",
+            "Estado": "Aprobado por Humano",
+            "Fecha Aprobación": "={{ $now.format('yyyy-MM-dd') }}",
+            "Comentario Humano": "Aprobado vía Slack (HITL)",
+            "Slack Thread ID": "={{ $('Slack - Solicitar Aprobación (HITL)').item.json.ts }}"
+          },
+          "matchingColumns": ["id"],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "node-airtable-aprobado",
+      "name": "Airtable - Marcar Aprobado",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [2080, 100]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "post",
+        "select": "channel",
+        "channelId": { "__rl": true, "value": "", "mode": "list", "cachedResultName": "" },
+        "messageType": "text",
+        "text": "=:white_check_mark: *Homologación APROBADA y registrada.*\nSistema: {{ $('Trigger - Recepción Solicitud').item.json.body.nombre_sistema }} — Estado: *Aprobado por Humano*.",
+        "otherOptions": {
+          "mrkdwn": true,
+          "thread_ts": "={{ $('Slack - Solicitar Aprobación (HITL)').item.json.ts }}"
+        }
+      },
+      "id": "node-slack-cierre",
+      "name": "Slack - Notificar Cierre",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [2320, 100]
+    },
+    {
+      "parameters": {
+        "resource": "record",
+        "operation": "update",
+        "base": { "__rl": true, "value": "", "mode": "list", "cachedResultName": "" },
+        "table": { "__rl": true, "value": "", "mode": "list", "cachedResultName": "Solicitudes" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Airtable - Crear Registro').item.json.id }}",
+            "Estado": "Rechazado",
+            "Fecha Aprobación": "={{ $now.format('yyyy-MM-dd') }}",
+            "Comentario Humano": "Rechazado vía Slack (HITL)",
+            "Slack Thread ID": "={{ $('Slack - Solicitar Aprobación (HITL)').item.json.ts }}"
+          },
+          "matchingColumns": ["id"],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "node-airtable-rechazado",
+      "name": "Airtable - Marcar Rechazado",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [2080, 300]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "post",
+        "select": "channel",
+        "channelId": { "__rl": true, "value": "", "mode": "list", "cachedResultName": "" },
+        "messageType": "text",
+        "text": "=:x: *Homologación RECHAZADA.*\nSistema: {{ $('Trigger - Recepción Solicitud').item.json.body.nombre_sistema }} — Estado: *Rechazado*.",
+        "otherOptions": {
+          "mrkdwn": true,
+          "thread_ts": "={{ $('Slack - Solicitar Aprobación (HITL)').item.json.ts }}"
+        }
+      },
+      "id": "node-slack-rechazo",
+      "name": "Slack - Notificar Rechazo",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [2320, 300]
+    },
+    {
+      "parameters": {
+        "resource": "record",
+        "operation": "create",
+        "base": { "__rl": true, "value": "", "mode": "list", "cachedResultName": "" },
+        "table": { "__rl": true, "value": "", "mode": "list", "cachedResultName": "Solicitudes" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Nombre del Sistema": "={{ $('Trigger - Recepción Solicitud').item.json.body.nombre_sistema || 'N/D' }}",
+            "Estado": "Error - Datos incompletos",
+            "Error Log": "Faltan campos obligatorios en la solicitud (nombre_sistema, solicitante, tipo_plataforma o datos_maneja)."
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "node-airtable-err-datos",
+      "name": "Airtable - Log Error Datos",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [80, 560]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "post",
+        "select": "channel",
+        "channelId": { "__rl": true, "value": "", "mode": "list", "cachedResultName": "" },
+        "messageType": "text",
+        "text": "=:warning: *Solicitud de homologación rechazada por datos incompletos.* Se registró en Airtable con Estado `Error - Datos incompletos`.",
+        "otherOptions": { "mrkdwn": true }
+      },
+      "id": "node-slack-err-datos",
+      "name": "Slack - Alerta Datos Faltantes",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [320, 560]
+    },
+    {
+      "parameters": {
+        "resource": "record",
+        "operation": "create",
+        "base": { "__rl": true, "value": "", "mode": "list", "cachedResultName": "" },
+        "table": { "__rl": true, "value": "", "mode": "list", "cachedResultName": "Solicitudes" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Nombre del Sistema": "={{ $('Trigger - Recepción Solicitud').item.json.body.nombre_sistema }}",
+            "Estado": "Error - API",
+            "Error Log": "={{ $json.error && $json.error.message ? $json.error.message : 'Falla al invocar la API de Claude' }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "node-airtable-err-api",
+      "name": "Airtable - Log Error API",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [760, 560]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "post",
+        "select": "channel",
+        "channelId": { "__rl": true, "value": "", "mode": "list", "cachedResultName": "" },
+        "messageType": "text",
+        "text": "=:rotating_light: *Falla en la API de Claude* al evaluar una homologación. Se guardó el log con Estado `Error - API`. Revisar la ejecución en n8n.",
+        "otherOptions": { "mrkdwn": true }
+      },
+      "id": "node-slack-err-api",
+      "name": "Slack - Alerta Falla API",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [1000, 560]
+    }
+  ],
+  "connections": {
+    "Trigger - Recepción Solicitud": {
+      "main": [[{ "node": "Validación - Datos Completos", "type": "main", "index": 0 }]]
+    },
+    "Validación - Datos Completos": {
+      "main": [
+        [{ "node": "Airtable - Crear Registro", "type": "main", "index": 0 }],
+        [{ "node": "Airtable - Log Error Datos", "type": "main", "index": 0 }]
+      ]
+    },
+    "Airtable - Crear Registro": {
+      "main": [[{ "node": "Preparar Prompt IA", "type": "main", "index": 0 }]]
+    },
+    "Preparar Prompt IA": {
+      "main": [[{ "node": "Claude - Evaluación de Riesgo", "type": "main", "index": 0 }]]
+    },
+    "Claude - Evaluación de Riesgo": {
+      "main": [
+        [{ "node": "Parse - Evaluación IA", "type": "main", "index": 0 }],
+        [{ "node": "Airtable - Log Error API", "type": "main", "index": 0 }]
+      ]
+    },
+    "Parse - Evaluación IA": {
+      "main": [[{ "node": "Airtable - Guardar Evaluación IA", "type": "main", "index": 0 }]]
+    },
+    "Airtable - Guardar Evaluación IA": {
+      "main": [[{ "node": "Slack - Solicitar Aprobación (HITL)", "type": "main", "index": 0 }]]
+    },
+    "Slack - Solicitar Aprobación (HITL)": {
+      "main": [[{ "node": "Switch - Decisión Humana", "type": "main", "index": 0 }]]
+    },
+    "Switch - Decisión Humana": {
+      "main": [
+        [{ "node": "Airtable - Marcar Aprobado", "type": "main", "index": 0 }],
+        [{ "node": "Airtable - Marcar Rechazado", "type": "main", "index": 0 }]
+      ]
+    },
+    "Airtable - Marcar Aprobado": {
+      "main": [[{ "node": "Slack - Notificar Cierre", "type": "main", "index": 0 }]]
+    },
+    "Airtable - Marcar Rechazado": {
+      "main": [[{ "node": "Slack - Notificar Rechazo", "type": "main", "index": 0 }]]
+    },
+    "Airtable - Log Error Datos": {
+      "main": [[{ "node": "Slack - Alerta Datos Faltantes", "type": "main", "index": 0 }]]
+    },
+    "Airtable - Log Error API": {
+      "main": [[{ "node": "Slack - Alerta Falla API", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
