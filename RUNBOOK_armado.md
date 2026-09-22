@@ -119,7 +119,7 @@ Usá los payloads de `payloads_prueba.md`. Enviá cada uno con Postman, Insomnia
 ```bash
 curl -X POST "URL_DEL_WEBHOOK" \
   -H "Content-Type: application/json" \
-  -d '{"nombre_sistema":"Portal Proveedores Cloud","solicitante":"jperez@comafi.com.ar","area":"Compras","tipo_plataforma":"SaaS","datos_maneja":"Datos de proveedores, CUIT y montos.","criticidad":"Media"}'
+  -d '{"nombre_sistema":"Portal Proveedores Cloud","solicitante":"jperez@bancoejemplo.com.ar","area":"Compras","tipo_plataforma":"SaaS","datos_maneja":"Datos de proveedores, CUIT y montos.","criticidad":"Media"}'
 ```
 
 Verificá que:

@@ -26,7 +26,7 @@ La base `PAI Homologaciones` tiene **3 tablas relacionadas** para evitar datos a
 | Clasif. IA - Confidencialidad | Number (1–5) | Claude | Puntaje C. |
 | Clasif. IA - Integridad | Number (1–5) | Claude | Puntaje I. |
 | Clasif. IA - Disponibilidad | Number (1–5) | Claude | Puntaje D. |
-| Nivel de Riesgo IA | Single select | Claude | Crítico · Alto · Medio · Bajo. |
+| Nivel de Riesgo IA | Single line text | Claude | Critico · Alto · Medio · Bajo (texto libre, para aceptar el valor exacto que devuelve la IA). |
 | Controles Requeridos | Link → `Controles` | Claude/Analista | **Relación** al catálogo de controles. |
 | Resumen IA | Long text | Claude | Justificación de la evaluación. |
 | Analista Asignado | Link → `Analistas` | Sistema | **Relación** al analista PAI. |
@@ -87,7 +87,7 @@ Lo que recibe el flujo cuando llega una solicitud. Se envía por `POST` al webho
 ```json
 {
   "nombre_sistema": "Portal Proveedores Cloud",
-  "solicitante": "jperez@comafi.com.ar",
+  "solicitante": "jperez@bancoejemplo.com.ar",
   "area": "Compras",
   "tipo_plataforma": "SaaS",
   "datos_maneja": "Datos de proveedores, CUIT, datos de contacto y montos de facturación.",

@@ -44,7 +44,7 @@ Para evitar el "efecto metralleta" (que el sistema ejecute acciones críticas si
 | **Espera de feedback** | El sistema **no marca nada como aprobado por sí solo**. Solo el clic humano en un botón reanuda la ejecución. Se usaron botones nativos (no links de texto) precisamente porque Slack escanea los links y podría auto-dispararlos: el botón exige una acción humana real. |
 | **Ruteo posterior** | `Switch - Decisión Humana` lee el booleano `{{ $json.data.approved }}` (`true` → Aprobado por Humano, `false` → Rechazado), marca el registro + notifica el cierre en el **mismo hilo** (Thread ID). |
 
-**Por qué es crítico este punto:** homologar un sistema es autorizar su uso en el banco (entidad regulada por BCRA). La IA **asiste** en la evaluación de riesgo, pero la **decisión de homologar la toma siempre una persona**. El HITL garantiza trazabilidad y responsabilidad humana sobre la acción crítica.
+**Por qué es crítico este punto:** homologar un sistema es autorizar su uso en la entidad financiera (regulada por el ente de contralor bancario). La IA **asiste** en la evaluación de riesgo, pero la **decisión de homologar la toma siempre una persona**. El HITL garantiza trazabilidad y responsabilidad humana sobre la acción crítica.
 
 ## 4. Resumen de controles
 

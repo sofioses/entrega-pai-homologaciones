@@ -9,7 +9,7 @@ Incluye el **camino feliz** y el **camino infeliz** (datos incompletos) para ver
 ```json
 {
   "nombre_sistema": "Portal Proveedores Cloud",
-  "solicitante": "jperez@comafi.com.ar",
+  "solicitante": "jperez@bancoejemplo.com.ar",
   "area": "Compras",
   "tipo_plataforma": "SaaS",
   "datos_maneja": "Datos de proveedores, CUIT, datos de contacto y montos de facturación.",
@@ -21,7 +21,7 @@ Incluye el **camino feliz** y el **camino infeliz** (datos incompletos) para ver
 ```json
 {
   "nombre_sistema": "API Core Bancario - Consulta Saldos",
-  "solicitante": "mlopez@comafi.com.ar",
+  "solicitante": "mlopez@bancoejemplo.com.ar",
   "area": "Canales Digitales",
   "tipo_plataforma": "API",
   "datos_maneja": "Saldos de cuentas, movimientos, datos de clientes y tarjetas.",
@@ -33,7 +33,7 @@ Incluye el **camino feliz** y el **camino infeliz** (datos incompletos) para ver
 ```json
 {
   "nombre_sistema": "Chatbot FAQ Interno",
-  "solicitante": "rgomez@comafi.com.ar",
+  "solicitante": "rgomez@bancoejemplo.com.ar",
   "area": "RRHH",
   "tipo_plataforma": "BOT",
   "datos_maneja": "Preguntas frecuentes de empleados sobre políticas internas. Sin datos sensibles.",
@@ -54,7 +54,7 @@ Incluye el **camino feliz** y el **camino infeliz** (datos incompletos) para ver
 ```json
 {
   "nombre_sistema": "Microservicio Notificaciones Push",
-  "solicitante": "adiaz@comafi.com.ar",
+  "solicitante": "adiaz@bancoejemplo.com.ar",
   "area": "Arquitectura",
   "tipo_plataforma": "Microservicio",
   "datos_maneja": "Tokens de dispositivos y mensajes de notificación a clientes.",

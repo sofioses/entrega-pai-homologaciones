@@ -1,7 +1,7 @@
 # Entrega Final — Ecosistema de Automatización IA Autónomo para Negocios
 
-**Curso:** IA Automation (Coderhouse) · **Autora:** Sofia
-**Caso de uso:** Triage automático de solicitudes de homologación de seguridad IT (proceso PAI — Banco Comafi).
+**Curso:** IA Automation (Coderhouse) · **Alumna:** Sofía Osés
+**Caso de uso:** Triage automático de solicitudes de homologación de seguridad IT (proceso PAI — banca financiera).
 
 Sistema de automatización de punta a punta que recibe una solicitud de homologación, la evalúa con IA, la registra en una base de datos, exige aprobación humana antes de cerrar, y notifica el resultado — con rutas de error y sin intervención manual salvo el punto de control humano.
 
@@ -37,7 +37,7 @@ Sistema de automatización de punta a punta que recibe una solicitud de homologa
 
 - 🔗 **Base de datos (modo lectura):** https://airtable.com/app6FuI5UeGkgykO7/shrGLvz82yL1ROM9O
 - 📊 **Dashboard de control (KPIs + tasa de errores):** https://airtable.com/app6FuI5UeGkgykO7/shrGLvz82yL1ROM9O
-- 🎥 **Video demo (3 min):** `[pegar link del video]`
+- 🎥 **Video demo (3 min):** https://drive.google.com/drive/folders/1l6L_I9DzpAE3erGGd6Y7LxSwOiL5eBBm?usp=sharing
 
 ## Cómo reproducirlo
 

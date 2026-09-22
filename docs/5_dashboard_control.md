@@ -16,7 +16,7 @@ El panel se arma sobre la tabla `Solicitudes` y muestra la salud operativa del s
 | **En espera de aprobación** | Registros con `Estado = Esperando Aprobación` | Cola pendiente de decisión humana (HITL) |
 | **Aprobadas** | `Estado = Aprobado por Humano` | Homologaciones cerradas OK |
 | **Rechazadas** | `Estado = Rechazado` | Decisiones negativas |
-| **Distribución de riesgo** | Agrupar por `Nivel de Riesgo IA` | Cuántas Crítico/Alto/Medio/Bajo |
+| **Distribución de riesgo** | Agrupar por `Nivel de Riesgo IA` | Cuántas Critico/Alto/Medio/Bajo |
 | **Tasa de errores** | (Registros `Error - *`) / totales | Salud técnica del pipeline |
 | **Tiempo a decisión** | `Fecha Aprobación` − `Fecha Solicitud` | Cuánto tarda el HITL |
 

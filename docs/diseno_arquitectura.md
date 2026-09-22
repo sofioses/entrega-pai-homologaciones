@@ -1,6 +1,6 @@
 # Diseño — Ecosistema de Automatización IA (Entrega Final)
 
-**Caso de uso:** Triage automático de solicitudes de homologación de seguridad IT (proceso PAI, Banco Comafi).
+**Caso de uso:** Triage automático de solicitudes de homologación de seguridad IT (proceso PAI, banca financiera).
 **Stack:** n8n (orquestador) · Airtable (memoria/DB) · Claude (motor IA) · Slack (salida + HITL).
 
 ---
@@ -61,7 +61,7 @@ El trigger procesa una solicitud por ejecución (webhook). El estado avanza en u
 | Clasif. IA - Confidencialidad | Number (1–5) | Lo completa Claude |
 | Clasif. IA - Integridad | Number (1–5) | Lo completa Claude |
 | Clasif. IA - Disponibilidad | Number (1–5) | Lo completa Claude |
-| Nivel de Riesgo IA | Single select | Crítico · Alto · Medio · Bajo |
+| Nivel de Riesgo IA | Single line text | Critico · Alto · Medio · Bajo |
 | Controles Requeridos | Link → `Controles` | Relación (evita datos aislados) |
 | Resumen IA | Long text | Justificación de la evaluación |
 | Analista Asignado | Link → `Analistas` | Relación |
